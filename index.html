@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		canvas{
+			border: 1px solid #000;
+		}
+	</style>
+</head>
+<body>
+	<canvas width="730" height="512" id="canvas"></canvas>
+	
+	<script type="text/javascript" src="js/Bg.js"></script>
+	<script type="text/javascript" src="js/Guanzi.js"></script>
+	<script type="text/javascript" src="js/Niao.js"></script>
+	<script type="text/javascript">
+		//得到画布
+		var canvas = document.getElementById("canvas");
+		//得到上下文
+		var ctx = canvas.getContext("2d");
+ 		
+ 		//资源雷暴
+ 	 	var images = {
+ 	 		"bg_day" : "images/bg_day.png",		//背景图片
+ 	 		"land" : "images/land.png",			//大地
+ 	 		"pipe_chongshang" : "images/pipe_chongshang.png",			//管子
+ 	 		"pipe_chongxia" : "images/pipe_chongxia.png",			//大地
+ 	 		"bird2_0" : "images/bird2_0.png",					//鸟
+ 	 		"bird2_1" : "images/bird2_1.png",					//鸟
+ 	 		"bird2_2" : "images/bird2_2.png"					//鸟
+ 	 	}
+
+ 	 	//资源对象，它的键名和images一样，但是值都是Image()对象。
+ 	 	var R = {};
+
+ 	 	var count = 0;	//已经加载好的图片数量
+ 	 	for(var k in images){
+ 	 		//R的键名和images一样，但是值是Image虚拟图片对象。Image是内置的构造函数。
+ 	 		R[k] = new Image();
+ 	 		//src路径，发出请求
+ 	 		R[k].src = images[k];
+ 	 		//当这个图片加载好之后做的事情
+ 	 		R[k].onload = function(){
+ 	 			//每个图片加载完毕之后，都要问一下“都加载好了没？”
+ 	 			count++;
+ 	 			//如果已经加载好的图片数量等于images的键的个数，说明都好了
+ 	 			if(count == Object.keys(images).length){
+ 	 				start();
+ 	 			}
+ 	 		}
+ 	 	}
+
+
+ 	 	//所有演员的数组
+ 	 	var arr = [];
+ 	 	//管子数组
+ 	 	var guanziArr = [];
+ 	 	//帧编号
+ 	 	var f = 0;
+ 	 	//分数
+ 	 	var score = 0;
+ 	 	//开始游戏
+ 	 	function start(){
+ 	 		var timer = setInterval(function(){
+ 	 			f++;
+ 	 			//清屏
+ 	 			ctx.clearRect(0,0,canvas.width,canvas.height);
+
+ 	 			//遍历演员数组，调用每个人的update和render方法
+ 	 			for(var i = 0 ; i < arr.length ; i++){
+ 	 				arr[i].update();
+ 	 				arr[i].render();
+ 	 			}
+
+ 				//也让管子中的渲染
+ 				//碰撞检测，每帧都要研究小鸟是否不是碰到某个管子了，所以要遍历所有管子，一个一个通过。
+ 	 			for(var i = 0 ; i < guanziArr.length ; i++){
+ 	 				guanziArr[i].update();
+ 	 				guanziArr[i].render();
+
+ 	 				//检查是否撞上管子了
+ 	 				if(niao.BBy1 <= guanziArr[i].shangguanzigao && niao.BBx2 > guanziArr[i].x && niao.BBx1 < guanziArr[i].x + 52){
+ 	 					clearInterval(timer);
+ 	 				}
+
+ 	 				//检查是否撞下管子了
+ 	 				if(niao.BBy2 >= guanziArr[i].shangguanzigao + guanziArr[i].feng && niao.BBx2 > guanziArr[i].x && niao.BBx1 < guanziArr[i].x + 52){
+ 	 					clearInterval(timer);
+ 	 				}
+
+ 	 				//检查是否加分
+ 	 				if(niao.BBx1 > guanziArr[i].x + 52 && !guanziArr[i].isAlreadyJiafen){
+ 	 					//给这个管子加一个标记
+ 	 					guanziArr[i].isAlreadyJiafen = true;
+ 	 					score ++;
+ 	 				}
+ 	 			}
+
+ 	 			//检查鸟是否撞大地了
+ 	 			if(niao.y > 417){
+ 	 				clearInterval(timer);
+ 	 			}
+
+ 	 			//实例化管子，每100帧出现一次
+ 	 			if(f % 100 == 0){
+ 	 				new Guanzi();
+ 	 			}
+
+ 	 			
+ 	 			//打印帧编号，要设置颜色、字体
+ 	 			ctx.fillStyle = "#333";
+ 	 			ctx.font = "14px consolas";
+ 	 			ctx.fillText(f,10,20);
+ 	 			ctx.textAlign = "center";
+
+ 	 			//打印分数
+ 	 			ctx.fillStyle = "#333";
+ 	 			ctx.font = "60px consolas";
+ 	 			ctx.fillText(score,canvas.width / 2,100);
+
+ 	 		
+
+ 	 		},25);
+ 	 	}
+
+
+ 	 	//实例化演员
+ 	 	new Bg();
+ 	  	var niao = new Niao();
+ 	  	new Guanzi();
+
+
+ 	  	canvas.onmousedown = function(){
+ 	  		niao.fly();
+ 	  	}
+	</script>
+</body>
+</html>
